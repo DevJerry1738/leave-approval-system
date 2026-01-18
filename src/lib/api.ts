@@ -25,8 +25,8 @@ export async function getMyLeaves(): Promise<LeaveRequest[]> {
     leaveType: item.leave_type,
     startDate: item.start_date,
     endDate: item.end_date,
-    submittedAt: item.created_at,
-    reason: item.reason,
+    submittedAt: item.created_at ?? 'N/A',
+    reason: item.reason ?? '',
     status: item.status as LeaveStatus,
   }));
 }
@@ -90,13 +90,9 @@ export async function getAllLeaves() {
     startDate: item.start_date,
     endDate: item.end_date,
     status: item.status,
-    submittedAt: new Date(item.created_at).toLocaleDateString(),
+    submittedAt: item.created_at ? new Date(item.created_at).toLocaleDateString() : 'N/A',
   }));
 }
-
-
-
-
 
 /**
  * Admin actions

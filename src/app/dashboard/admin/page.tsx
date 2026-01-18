@@ -38,7 +38,16 @@ export default function AdminDashboard() {
     setLoading(true);
     try {
       const res = await getAllLeaves();
-      setData(res || []);
+      // Map to ensure type safety: Ignore extra fields like submittedAt, coerce status if null
+      const mappedData: LeaveRequest[] = (res || []).map((item: any) => ({
+        id: item.id,
+        staffName: item.staffName,
+        leaveType: item.leaveType,
+        startDate: item.startDate,
+        endDate: item.endDate,
+        status: item.status ?? "pending", // Fallback if null; adjust based on your DB
+      }));
+      setData(mappedData);
     } catch (err) {
       console.error(err);
       toast.error("Failed to load leave requests");

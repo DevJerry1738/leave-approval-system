@@ -48,38 +48,27 @@ const onSubmit = async (data: LoginFormValues) => {
   const { data: authData, error } =
     await supabase.auth.signInWithPassword(data);
 
-  if (error) {
-    setAuthError(error.message);
+  if (error || !authData.user) {
+    setAuthError(error?.message || "Login failed");
     setLoading(false);
     return;
   }
 
-  if (!authData.user) {
-    setAuthError("Login failed");
-    setLoading(false);
-    return;
-  }
-
-  const { data: profile, error: profileError } = await supabase
+  const { data: profile } = await supabase
     .from("profiles")
     .select("role")
     .eq("id", authData.user.id)
     .single();
 
-  if (profileError) {
-    setAuthError("Failed to load user profile");
-    setLoading(false);
-    return;
-  }
-
-  setLoading(false);
+  setLoading(false); // IMPORTANT
 
   router.push(
-    profile.role === "admin"
+    profile?.role === "admin"
       ? "/dashboard/admin"
       : "/dashboard/staff"
   );
 };
+
 
 
   return (

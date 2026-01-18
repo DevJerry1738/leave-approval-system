@@ -41,31 +41,46 @@ export default function LoginPage() {
     resolver: zodResolver(loginSchema),
   });
 
-  const onSubmit = async (data: LoginFormValues) => {
-    setLoading(true);
-    setAuthError(null);
+const onSubmit = async (data: LoginFormValues) => {
+  setLoading(true);
+  setAuthError(null);
 
-    const { data: authData, error } =
-      await supabase.auth.signInWithPassword(data);
+  const { data: authData, error } =
+    await supabase.auth.signInWithPassword(data);
 
-    if (error) {
-      setAuthError(error.message);
-      setLoading(false);
-      return;
-    }
+  if (error) {
+    setAuthError(error.message);
+    setLoading(false);
+    return;
+  }
 
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", authData.user.id)
-      .single();
+  if (!authData.user) {
+    setAuthError("Login failed");
+    setLoading(false);
+    return;
+  }
 
-    router.push(
-      profile?.role === "admin"
-        ? "/dashboard/admin"
-        : "/dashboard/staff"
-    );
-  };
+  const { data: profile, error: profileError } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", authData.user.id)
+    .single();
+
+  if (profileError) {
+    setAuthError("Failed to load user profile");
+    setLoading(false);
+    return;
+  }
+
+  setLoading(false);
+
+  router.push(
+    profile.role === "admin"
+      ? "/dashboard/admin"
+      : "/dashboard/staff"
+  );
+};
+
 
   return (
     <main className="min-h-screen flex items-center justify-center bg-muted px-4">
@@ -104,13 +119,13 @@ export default function LoginPage() {
                   type={showPassword ? "text" : "password"}
                   {...register("password")}
                 />
-                <button
+                <Button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2"
                 >
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
+                </Button>
               </div>
               {errors.password && (
                 <p className="text-sm text-destructive">

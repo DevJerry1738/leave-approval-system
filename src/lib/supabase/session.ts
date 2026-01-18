@@ -1,8 +1,9 @@
-// src/lib/supabase/session.ts
-import { supabase } from "./client";
 import { redirect } from "next/navigation";
+import { createSupabaseServerClient } from "./server";
 
 export async function requireAuth() {
+  const supabase = await createSupabaseServerClient();
+
   const {
     data: { session },
   } = await supabase.auth.getSession();
@@ -10,5 +11,6 @@ export async function requireAuth() {
   if (!session) {
     redirect("/auth/login");
   }
+
   return session;
 }

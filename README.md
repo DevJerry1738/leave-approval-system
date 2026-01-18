@@ -1,36 +1,70 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Leave Approval System 🗂️
 
-## Getting Started
+A role-based **Leave Request & Approval System** built with **Next.js, TypeScript, and Supabase**.  
+Staff can submit leave requests, while admins can review, approve, or reject them in real time.
 
-First, run the development server:
+This project demonstrates:
+- Authentication & role-based access control
+- Database relationships and joins
+- Secure data access with Supabase RLS
+- Modern frontend architecture with Next.js App Router
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+---
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🚀 Features
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 👤 Authentication
+- Email & password signup/login
+- Role-based routing (Admin vs Staff)
+- Secure session handling via Supabase Auth
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 🧑‍💼 Staff Dashboard
+- Submit leave requests
+- View leave history
+- Track request status (Pending / Approved / Rejected)
 
-## Learn More
+### 🛠️ Admin Dashboard
+- View all leave requests
+- See staff names attached to requests
+- Approve or reject leave requests
 
-To learn more about Next.js, take a look at the following resources:
+### 🔐 Security
+- Supabase Row Level Security (RLS)
+- Users can only access data they are allowed to see
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 🧰 Tech Stack
 
-## Deploy on Vercel
+- **Frontend:** Next.js (App Router), React, TypeScript
+- **Backend & DB:** Supabase (PostgreSQL + Auth)
+- **Styling:** Tailwind CSS + shadcn/ui
+- **Forms & Validation:** React Hook Form, Zod
+- **Deployment:** Vercel
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 🗃️ Database Schema
+
+### `profiles`
+| Column | Type | Description |
+|------|----|----|
+| id | uuid | User ID (auth.uid) |
+| name | text | Staff/Admin name |
+| role | text | `admin` or `staff` |
+
+### `leave_requests`
+| Column | Type | Description |
+|------|----|----|
+| id | uuid | Leave request ID |
+| user_id | uuid | References profiles.id |
+| leave_type | text | Type of leave |
+| start_date | date | Start date |
+| end_date | date | End date |
+| reason | text | Optional reason |
+| status | text | pending / approved / rejected |
+| created_at | timestamp | Submission time |
+
+---
+
+

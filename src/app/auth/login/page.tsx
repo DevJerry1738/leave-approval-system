@@ -2,11 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Home, Loader2, Eye, EyeOff } from "lucide-react";
+import { Home, Eye, EyeOff } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,56 +14,15 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { supabase } from "@/lib/supabase/client";
-
-const loginSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(6),
-});
-
-type LoginFormValues = z.infer<typeof loginSchema>;
+import { loginAction } from "@/lib/supabase/auth"; // Adjust path if needed
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
-  const router = useRouter();
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<LoginFormValues>({
-    resolver: zodResolver(loginSchema),
-  });
-
-  const onSubmit = async (data: LoginFormValues) => {
-    setLoading(true);
-    setAuthError(null);
-
-    const { data: authData, error } =
-      await supabase.auth.signInWithPassword(data);
-    console.log("SignIn result:", { authData, error }); // Check if user/session returned
-
-    if (error || !authData.user) {
-      setAuthError(error?.message || "Login failed");
-      setLoading(false);
-      return;
-    }
-
-    const { data: profile, error: profileError } = await supabase // Add error destructuring
-      .from("profiles")
-      .select("role")
-      .eq("id", authData.user.id)
-      .single();
-    console.log("Profile fetch:", { profile, profileError });
-
-    setLoading(false);
-    const target =
-      profile?.role === "admin" ? "/dashboard/admin" : "/dashboard/staff";
-    console.log("Redirecting to:", target);
-    router.push(target);
-  };
+  // Handle error from action (passed via search params or manual handling)
+  // For simplicity, we'll submit natively and handle redirects/errors via action
 
   return (
     <main className="min-h-screen flex items-center justify-center bg-muted px-4">
@@ -84,27 +39,32 @@ export default function LoginPage() {
         </CardHeader>
 
         <CardContent>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+          <form action={async (formData) => {
+            setLoading(true);
+            setAuthError(null);
+            const result = await loginAction(formData);
+            if (result?.error) {
+              setAuthError(result.error);
+            }
+            setLoading(false);
+            // Success redirects from action
+          }} className="space-y-5">
             {authError && (
               <p className="text-sm text-destructive">{authError}</p>
             )}
 
             <div className="space-y-2">
               <Label>Email</Label>
-              <Input {...register("email")} />
-              {errors.email && (
-                <p className="text-sm text-destructive">
-                  {errors.email.message}
-                </p>
-              )}
+              <Input name="email" type="email" required />
             </div>
 
             <div className="space-y-2">
               <Label>Password</Label>
               <div className="relative">
                 <Input
+                  name="password"
                   type={showPassword ? "text" : "password"}
-                  {...register("password")}
+                  required minLength={6}
                 />
                 <Button
                   type="button"
@@ -114,11 +74,6 @@ export default function LoginPage() {
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </Button>
               </div>
-              {errors.password && (
-                <p className="text-sm text-destructive">
-                  {errors.password.message}
-                </p>
-              )}
             </div>
 
             <Button type="submit" className="w-full" disabled={loading}>

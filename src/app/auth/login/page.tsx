@@ -41,35 +41,33 @@ export default function LoginPage() {
     resolver: zodResolver(loginSchema),
   });
 
-const onSubmit = async (data: LoginFormValues) => {
-  setLoading(true);
-  setAuthError(null);
+  const onSubmit = async (data: LoginFormValues) => {
+    setLoading(true);
+    setAuthError(null);
 
-  const { data: authData, error } =
-    await supabase.auth.signInWithPassword(data);
+    const { data: authData, error } =
+      await supabase.auth.signInWithPassword(data);
+    console.log("SignIn result:", { authData, error }); // Check if user/session returned
 
-  if (error || !authData.user) {
-    setAuthError(error?.message || "Login failed");
+    if (error || !authData.user) {
+      setAuthError(error?.message || "Login failed");
+      setLoading(false);
+      return;
+    }
+
+    const { data: profile, error: profileError } = await supabase // Add error destructuring
+      .from("profiles")
+      .select("role")
+      .eq("id", authData.user.id)
+      .single();
+    console.log("Profile fetch:", { profile, profileError });
+
     setLoading(false);
-    return;
-  }
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", authData.user.id)
-    .single();
-
-  setLoading(false); // IMPORTANT
-
-  router.push(
-    profile?.role === "admin"
-      ? "/dashboard/admin"
-      : "/dashboard/staff"
-  );
-};
-
-
+    const target =
+      profile?.role === "admin" ? "/dashboard/admin" : "/dashboard/staff";
+    console.log("Redirecting to:", target);
+    router.push(target);
+  };
 
   return (
     <main className="min-h-screen flex items-center justify-center bg-muted px-4">

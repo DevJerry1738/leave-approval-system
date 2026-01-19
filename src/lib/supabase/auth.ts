@@ -1,13 +1,13 @@
 "use server";
 
-import { createSupabaseServerClient } from "./server"; // Adjust path if needed
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 
 export async function loginAction(formData: FormData) {
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
 
-  const supabase = await createSupabaseServerClient(); // Await, no arg
+  const supabase = await createSupabaseServerClient();
 
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
@@ -27,4 +27,11 @@ export async function loginAction(formData: FormData) {
 
   const target = profile.role === "admin" ? "/dashboard/admin" : "/dashboard/staff";
   redirect(target);
+}
+
+export async function logout() {
+  const supabase = await createSupabaseServerClient();
+  const { error } = await supabase.auth.signOut();
+  if (error) throw error;
+  redirect("/auth/login");
 }

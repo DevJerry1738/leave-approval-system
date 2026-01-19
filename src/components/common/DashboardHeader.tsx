@@ -4,15 +4,14 @@ import { useRouter } from "next/navigation";
 import { LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { logout } from "@/lib/supabase/auth";
-import * as React from "react";
 
 export default function DashboardHeader({ title }: { title: string }) {
   const router = useRouter();
 
-   const handleLogout = async () => {
+  const handleLogout = async () => {
     try {
       await logout();
-      router.push("/auth/login"); // redirect to login after logout
+      // No need for manual router.push—server action redirects, but fallback if needed
     } catch (err) {
       console.error("Logout failed:", err);
     }
@@ -30,5 +29,3 @@ export default function DashboardHeader({ title }: { title: string }) {
     </header>
   );
 }
-
-

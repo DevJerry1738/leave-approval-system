@@ -24,9 +24,19 @@ export default function LoginPage() {
   const handleSubmit = (formData: FormData) => {
     setAuthError(null);
     startTransition(async () => {
-      const result = await loginAction(formData);
-      if (result?.error) {
-        setAuthError(result.error);
+      try {
+        const result = await loginAction(formData);
+        if (result?.error) {
+          setAuthError(result.error);
+        }
+      } catch (error) {
+        // Catch any unexpected errors
+        const message = error instanceof Error ? error.message : "An unexpected error occurred";
+        // Filter out NEXT_REDIRECT errors (these are expected and handled by the framework)
+        if (!message.includes("NEXT_REDIRECT")) {
+          setAuthError(message);
+          console.error("Login error:", error);
+        }
       }
     });
   };

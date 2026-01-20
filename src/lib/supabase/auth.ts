@@ -4,20 +4,25 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 
 export async function loginAction(formData: FormData) {
-  const email = formData.get("email") as string;
-  const password = formData.get("password") as string;
-
-  if (!email || !password) {
-    return { error: "Email and password are required" };
-  }
-
   try {
+    const email = formData.get("email") as string;
+    const password = formData.get("password") as string;
+
+    if (!email || !password) {
+      return { error: "Email and password are required" };
+    }
+
     const supabase = await createSupabaseServerClient();
+
+    if (!supabase) {
+      return { error: "Failed to initialize Supabase client - check your environment variables" };
+    }
 
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
     if (error) {
-      return { error: error.message };
+      console.error("Auth error:", error);
+      return { error: error.message || "Invalid email or password" };
     }
 
     if (!data.user) {
@@ -31,7 +36,8 @@ export async function loginAction(formData: FormData) {
       .single();
 
     if (profileError) {
-      return { error: profileError.message };
+      console.error("Profile error:", profileError);
+      return { error: profileError.message || "Could not fetch user profile" };
     }
 
     if (!profile) {
@@ -46,6 +52,7 @@ export async function loginAction(formData: FormData) {
       throw err;
     }
     const errorMessage = err instanceof Error ? err.message : "An unexpected error occurred";
+    console.error("Login action error:", err);
     return { error: errorMessage };
   }
 }

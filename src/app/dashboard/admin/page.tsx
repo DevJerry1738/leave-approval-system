@@ -23,11 +23,14 @@ export default async function AdminDashboard() {
     .single();
 
   if (error || !profile) {
-    console.error("Profile fetch error:", error);
+    console.error("Admin page - Profile fetch error:", error);
     redirect("/auth/login");
   }
 
+  console.log("Admin page - User role:", profile.role, "User ID:", session.user.id);
+
   if (profile.role !== "admin") {
+    console.log("Admin page - User is not admin, redirecting to staff");
     // Redirect non-admin users to staff dashboard
     redirect("/dashboard/staff");
   }

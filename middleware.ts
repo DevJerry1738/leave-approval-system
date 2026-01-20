@@ -50,15 +50,29 @@ export async function middleware(req: NextRequest) {
       return NextResponse.redirect(new URL("/auth/login", req.url));
     }
 
-    const role = session.user?.user_metadata?.role;
+    // Query profiles table for actual role (not from user_metadata)
+    const { data: profile, error } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", session.user.id)
+      .single();
+
+    if (error || !profile) {
+      console.error("Middleware - Profile fetch error:", error);
+      return NextResponse.redirect(new URL("/auth/login", req.url));
+    }
+
+    const role = profile.role;
 
     // Admin dashboard protection
     if (req.nextUrl.pathname.startsWith("/dashboard/admin") && role !== "admin") {
+      console.log("Middleware - Non-admin user accessing admin, redirecting to staff");
       return NextResponse.redirect(new URL("/dashboard/staff", req.url));
     }
 
     // Staff dashboard protection
     if (req.nextUrl.pathname.startsWith("/dashboard/staff") && role !== "staff") {
+      console.log("Middleware - Non-staff user accessing staff, redirecting to admin");
       return NextResponse.redirect(new URL("/dashboard/admin", req.url));
     }
 

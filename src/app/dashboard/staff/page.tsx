@@ -1,3 +1,4 @@
+//src/app/dashboard/staff/page.tsx
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import StaffDashboardClient from "./client";
@@ -14,9 +15,19 @@ export default async function StaffDashboard() {
     redirect("/auth/login");
   }
 
-  const role = session.user?.user_metadata?.role;
+  // Query profiles table for role (role is stored in DB, not user_metadata)
+  const { data: profile, error } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", session.user.id)
+    .single();
 
-  if (role !== "staff") {
+  if (error || !profile) {
+    console.error("Profile fetch error:", error);
+    redirect("/auth/login");
+  }
+
+  if (profile.role !== "staff") {
     // Redirect non-staff users to admin dashboard
     redirect("/dashboard/admin");
   }

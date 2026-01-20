@@ -1,6 +1,11 @@
 // src/lib/api.ts
-import { supabase } from "./supabase/client";
+'use client';
+
+import { createBrowserSupabaseClient } from "./supabase/browser-client";
 import type { LeaveRequest, LeaveStatus } from "@/types/leave";
+
+// Create a single instance for the module
+const supabase = createBrowserSupabaseClient();
 
 /**
  * Fetch logged-in staff leave requests

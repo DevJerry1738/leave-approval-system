@@ -15,9 +15,19 @@ export default async function AdminDashboard() {
     redirect("/auth/login");
   }
 
-  const role = session.user?.user_metadata?.role;
+  // Query profiles table for role (role is stored in DB, not user_metadata)
+  const { data: profile, error } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", session.user.id)
+    .single();
 
-  if (role !== "admin") {
+  if (error || !profile) {
+    console.error("Profile fetch error:", error);
+    redirect("/auth/login");
+  }
+
+  if (profile.role !== "admin") {
     // Redirect non-admin users to staff dashboard
     redirect("/dashboard/staff");
   }

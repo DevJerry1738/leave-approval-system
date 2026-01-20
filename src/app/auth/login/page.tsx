@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { Home, Eye, EyeOff } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -14,15 +14,22 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { loginAction } from "@/lib/supabase/auth"; // Adjust path if needed
+import { loginAction } from "@/lib/supabase/auth";
 
 export default function LoginPage() {
-  const [loading, setLoading] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
+  const [isPending, startTransition] = useTransition();
 
-  // Handle error from action (passed via search params or manual handling)
-  // For simplicity, we'll submit natively and handle redirects/errors via action
+  const handleSubmit = (formData: FormData) => {
+    setAuthError(null);
+    startTransition(async () => {
+      const result = await loginAction(formData);
+      if (result?.error) {
+        setAuthError(result.error);
+      }
+    });
+  };
 
   return (
     <main className="min-h-screen flex items-center justify-center bg-muted px-4">
@@ -39,16 +46,7 @@ export default function LoginPage() {
         </CardHeader>
 
         <CardContent>
-          <form action={async (formData) => {
-            setLoading(true);
-            setAuthError(null);
-            const result = await loginAction(formData);
-            if (result?.error) {
-              setAuthError(result.error);
-            }
-            setLoading(false);
-            // Success redirects from action
-          }} className="space-y-5">
+          <form action={handleSubmit} className="space-y-5">
             {authError && (
               <p className="text-sm text-destructive">{authError}</p>
             )}
@@ -76,8 +74,8 @@ export default function LoginPage() {
               </div>
             </div>
 
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Logging in..." : "Login"}
+            <Button type="submit" className="w-full" disabled={isPending}>
+              {isPending ? "Logging in..." : "Login"}
             </Button>
 
             <p className="text-sm text-center text-muted-foreground">

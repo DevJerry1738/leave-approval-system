@@ -7,8 +7,6 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
 export async function middleware(req: NextRequest) {
-  const res = NextResponse.next();
-
   const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     global: {
       headers: Object.fromEntries(req.headers.entries()) as Record<
@@ -48,7 +46,7 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(new URL("/dashboard/admin", req.url));
   }
 
-  return res;
+  return NextResponse.next();
 }
 
 export const config = {
